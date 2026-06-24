@@ -38,8 +38,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   src = fetchFromGitHub {
     owner = "ProtonDriveApps";
     repo = "sdk";
-    tag = "cli/v${finalAttrs.version}";
-    hash = "sha256-KAagyFMsXUjYqVs9wj6BZejWJGRP2VX00TTdk/pnm/E=";
+    rev = "e3d666b3395aa140b7629d8fdc46a8990c044c45";
+    hash = "sha256-plYUi7lN9dqiZPgiVGX4ka7Ls6DiIvTuxrRFKFdoA4o=";
   };
 
   sourceRoot = "${finalAttrs.src.name}/js/cli";
@@ -76,14 +76,14 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       runHook preInstall
 
       mkdir -p $out
-      cp -R node_modules $out/
+      cp -R --dereference node_modules $out/
 
       runHook postInstall
     '';
 
     dontFixup = true;
 
-    outputHash = "sha256-5pR67gBk4V1QwiaFoTVggBkjXEJLMYarBov4UewlT54=";
+    outputHash = "sha256-JAkX6rVG2EcRCvYCEhmqIihs2JYCtYAbKu/3Xsy6Z20=";
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
   };
@@ -145,8 +145,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   meta = {
     description = "Command-line interface for Proton Drive";
-    homepage = "https://github.com/ProtonDriveApps/sdk/tree/${finalAttrs.src.tag}/js/cli";
-    changelog = "https://github.com/ProtonDriveApps/sdk/blob/${finalAttrs.src.tag}/js/cli/CHANGELOG.md";
+    homepage = "https://github.com/ProtonDriveApps/sdk/tree/${finalAttrs.src.rev}/js/cli";
+    changelog = "https://github.com/ProtonDriveApps/sdk/blob/${finalAttrs.src.rev}/js/cli/CHANGELOG.md";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ cameroncandau ];
     mainProgram = "proton-drive";
