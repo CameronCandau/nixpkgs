@@ -2,6 +2,7 @@
   lib,
   stdenvNoCC,
   bun,
+  nodejs,
   fetchFromGitHub,
   glib,
   libffi,
@@ -53,6 +54,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     nativeBuildInputs = [
       bun
+      nodejs
       writableTmpDirAsHomeHook
     ];
 
@@ -68,6 +70,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         --ignore-scripts \
         --no-progress \
         --os="*"
+      ls -l node_modules/.bin/tsc || true
+      readlink node_modules/.bin/tsc || true
+      ls -l node_modules/@protontech || true
 
       runHook postBuild
     '';
@@ -76,14 +81,19 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       runHook preInstall
 
       mkdir -p $out
-      cp -R --dereference node_modules $out/
+      cp -R node_modules $out/
+
+      drive_sdk="$out/node_modules/@protontech/drive-sdk"
+      rm -r "$drive_sdk"
+      cp -R --dereference node_modules/@protontech/drive-sdk "$out/node_modules/@protontech/"
+
 
       runHook postInstall
     '';
 
     dontFixup = true;
 
-    outputHash = "sha256-JAkX6rVG2EcRCvYCEhmqIihs2JYCtYAbKu/3Xsy6Z20=";
+    outputHash = "sha256-eJ+JVFOCujmJKo7WkrMcDCoXdbieWL61HvwCU0JLLFw=";
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
   };
@@ -100,8 +110,22 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # Upstream uses a sibling workspace dependency via `file:../sdk`,
     # so both the CLI tree and sibling SDK tree need vendored node_modules.
     chmod -R u+w ../sdk
+
+
+
+
     cp -R ${finalAttrs.node_modules}/node_modules .
     cp -R ${finalAttrs.node_modules}/node_modules ../sdk/
+
+    substituteInPlace node_modules/.bin/tsc \
+      --replace-fail '#!/usr/bin/env node' '#!${lib.getExe nodejs}'
+
+    substituteInPlace ../sdk/node_modules/.bin/tsc \
+      --replace-fail '#!/usr/bin/env node' '#!${lib.getExe nodejs}'
+
+    head -n 1 ../sdk/node_modules/.bin/tsc || true
+    ls -l ../sdk/node_modules/.bin/tsc || true
+    cat ../sdk/node_modules/.bin/tsc
 
     runHook postConfigure
   '';
@@ -113,7 +137,19 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   buildPhase = ''
     runHook preBuild
 
+    pushd ../sdk
     bun run build
+
+
+    popd
+    chmod -R u+w node_modules/@protontech/drive-sdk
+    rm -rf node_modules/@protontech/drive-sdk/dist
+    cp -R ../sdk/dist node_modules/@protontech/drive-sdk/
+    ls -la node_modules/@protontech/drive-sdk/dist || true
+    ls -la ../sdk/dist || true
+    ls -la node_modules/@protontech/drive-sdk/dist || true
+    bun run build
+
 
     runHook postBuild
   '';
